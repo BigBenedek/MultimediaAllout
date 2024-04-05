@@ -116,16 +116,8 @@ function startingMap() {
  */
 function goodCirclesBack(i, j) {
     //Ő lesz az új körünk
-    let newbie;
-    if (goRandom){
-        /*if (Math.random() > 0.4) {
-            newbie = new Circle(i.toString()+j.toString(), true, j, i)
-        } else {
-            newbie = new Circle(i.toString()+j.toString(), false, j, i)
-        }*/
-    }else {
-        newbie = new Circle(i.toString()+j.toString(), false, j, i)
-    }
+    let newbie = new Circle(i.toString()+j.toString(), false, j, i)
+
     allCircles.push(newbie)
 }
 

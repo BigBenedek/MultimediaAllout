@@ -40,6 +40,7 @@ timer.innerHTML = "Eltelt idő:" + timeCounter.toString()
 let travel = null
 let startingPos = []
 let solverOn = false
+let lastSteps = 0;
 
 
 //A kör osztály
@@ -269,14 +270,17 @@ function end() {
  */
 
 function scoreGenerator(stepped) {
+
     let stoop = stepped
     for (let i = 0; i < stepped; i++) {
         //dobestupidme0nosqrt
-        stoop = Math.floor(Math.sqrt(stoop) * 40)
+        stoop = Math.floor(Math.sqrt(stoop) +100)
     }
     return stoop
 }
-
+if (localStorage.length > 0){
+    listScores()
+}
 function listScores() {
     let willBe = "<br>"
 
@@ -319,19 +323,16 @@ c.addEventListener("click", function (e) {
         normalStepSwitching(e)
         if (activeCircles.length === 0) {
             gameStarted = false;
-            reset()
-            nameAddButton.onclick = () => {
-                gloCount++
-                localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(stepCount).toString())
-                listScores()
-                end()
-            }
-
+            lastSteps = stepCount
+            end()
         }
     }
 })
+function nameAddToScoreboard() {
+
+}
 c.addEventListener("mousemove", function (e) {
-    if (!solverOn) {
+    if (!solverOn && gameStarted) {
         onTheHover(e)
     }
 })
@@ -377,6 +378,12 @@ $(document).ready(function () {
     })
     $(document.getElementById("test")).click(function () {
 
+    })
+    $(document.getElementById("scoreToName")).click(function () {
+        gloCount++
+        localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps).toString())
+        listScores()
+        end()
     })
 });
 

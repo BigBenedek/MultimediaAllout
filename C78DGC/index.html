@@ -1,0 +1,40 @@
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css" >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>All out?</title>
+</head>
+<body>
+<audio id="backgsound" autoplay loop muted>
+    <source src="jocofullinterview41.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+<audio id="sound">
+    <source src="" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+<span id="time">Eltelt idő: 0</span><br><span id="steps">Lépések: 0</span>
+<br>
+<label>Szint:
+    <select id="palya_valaszto">
+    </select>
+</label>
+<button id="genMap">GENERATE MAP</button>
+<button id="reset">RESTART</button>
+<button id="solve">SOLVE</button>
+<button onclick="playTheme()" id="song">Play music</button>
+<br>
+<canvas id="vaszon" width="0" height="0"></canvas>
+<div id="scoreboard">HUH:</div>
+<div id="endScreen" hidden="hidden">
+    <span class="endScreenText">You won!</span>
+    <br>
+    <span class="notBrutalText">
+    <label for="name">Set your name for the scoreboard!!</label><input type="text" id="name" name="name" minlength="3">
+    <button id="scoreToName">Set score!!!</button>
+    </span>
+</div>
+<script src="saved.js"></script>
+</body>
+</html>

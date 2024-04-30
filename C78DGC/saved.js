@@ -11,8 +11,8 @@ const audio = document.getElementById("sound")
 const song = document.getElementById("song")
 var bckg = new Audio('jocofullinterview41.mp3')
 
-const sorok = 5;
-const oszlopok = 5;
+let sorok = 5
+let oszlopok = 5;
 //Körök közti tér
 const spacx = 115
 const spacy = 115
@@ -211,7 +211,7 @@ function normalStepSwitching(event) {
             let ym1 = xi.toString() + (yi - 1).toString()
             let yp1 = xi.toString() + (yi + 1).toString()
 
-            if (5 >= xi >= 1 || 5 >= yi >= 1) {
+            if (sorok >= xi >= 1 || oszlopok >= yi >= 1) {
                 allCircles.forEach(r => {
                     if (r.id === xp1) r.switch()
                     if (r.id === xm1) r.switch()
@@ -266,21 +266,25 @@ function end() {
 }
 
 /**
- * Kattintásért felelős
+ * Minél több lépésel indul, annál kevesebb lesz a pontszám
+ * @param stepped kapott lépések
+ * @returns {number} a kapott lépésekből kiszámított pontszám
  */
-
 function scoreGenerator(stepped) {
-
-    let stoop = stepped
+    let stoop = stepped+10000
     for (let i = 0; i < stepped; i++) {
         //dobestupidme0nosqrt
-        stoop = Math.floor(Math.sqrt(stoop) +100)
+        stoop = stoop-Math.sqrt(stoop)
     }
-    return stoop
+    return Math.round(stoop)
 }
 if (localStorage.length > 0){
     listScores()
 }
+
+/**
+ * kilistázza a scoreboardot
+ */
 function listScores() {
     let willBe = "<br>"
 
@@ -292,6 +296,9 @@ function listScores() {
     scoreboard.innerHTML = "Scores: " + willBe
 }
 
+/**
+ * frissíti a scoreboardot
+ */
 function reloadedScores() {
     gloCount = localStorage.length
 }
@@ -313,24 +320,33 @@ function onTheHover(event) {
     }
 }
 
+/**
+ * Kattintásért felelős
+ */
+
 c.addEventListener("click", function (e) {
-    if (bckg.paused){
+    /*if (bckg.paused){
         bckg.volume = 0.01
+        bckg.loop = true
         bckg.play();
-    }
+    }*/
 
     if (gameStarted) {
         normalStepSwitching(e)
+        song.src = ""
+        song.volume = 0.2
+        song.play()
         if (activeCircles.length === 0) {
+            song.src = "TitkosMari.mp3"
+            song.volume = 0.2
+            song.play()
             gameStarted = false;
             lastSteps = stepCount
             end()
         }
     }
 })
-function nameAddToScoreboard() {
 
-}
 c.addEventListener("mousemove", function (e) {
     if (!solverOn && gameStarted) {
         onTheHover(e)
@@ -376,13 +392,23 @@ $(document).ready(function () {
         solverOn = true
         solverStart()
     })
-    $(document.getElementById("test")).click(function () {
-
+    $(document.getElementById("palya_valaszto")).change(function () {
+        if (gameStarted) {
+            reset()
+            gameStarted = false
+            clearInterval(travel)
+            solvableBoard(100)
+        } else {
+            reset()
+            gameStarted = true
+            solvableBoard(100)
+        }
     })
     $(document.getElementById("scoreToName")).click(function () {
         gloCount++
         localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps).toString())
         listScores()
+        endScreenElement.hidden = true
         end()
     })
 });

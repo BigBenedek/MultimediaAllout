@@ -7,15 +7,16 @@ const nameAddButton = document.getElementById("scoreToName")
 const steps = document.getElementById("steps")
 const timer = document.getElementById("time")
 const endScreenElement = document.getElementById("endScreen")
+const lameScreenElement = document.getElementById("lameScreen")
 const audio = document.getElementById("sound")
 const song = document.getElementById("song")
-var bckg = new Audio('jocofullinterview41.mp3')
+//var bckg = new Audio('')
 
-let sorok = 5
-let oszlopok = 5;
+const sorok = 5;
+const oszlopok = 5;
 //Körök közti tér
-const spacx = 115
-const spacy = 115
+const spacx = 110
+const spacy = 110
 c.width = (oszlopok * 100) + 200;
 c.height = (sorok * 100) + 200
 
@@ -60,7 +61,7 @@ class Circle {
     drawme() {
         ctx.beginPath();
         //Ha aktív a kör akkor sárga egyébként fekete
-        ctx.fillStyle = (this.active ? "yellow" : "black")
+        ctx.fillStyle = (this.active ? "white" : "black")
         ctx.arc(this.x, this.y, 50, 0, 2 * Math.PI)
         ctx.fill()
     }
@@ -130,7 +131,7 @@ class Circle {
         ctx.beginPath();
         ctx.strokeStyle = "red";
         ctx.arc(this.x, this.y, 55, 0, Math.PI * 2);
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 10;
         ctx.stroke();
         ctx.restore();
     }
@@ -184,12 +185,18 @@ function normalStepSwitching(event) {
     //canvason belüli kordinátákra hozás
     let x = event.x - rect.left
     let y = event.y - rect.top
+
     for (let circle of allCircles) {
         //távolság számítás a legközelebbi körhöz
         let dx = circle.x - x
         let dy = circle.y - y
         let distance = Math.sqrt(dx * dx + dy * dy)
         if (distance < 50) {
+            if (!global_generates) {
+                audio.src = "lightSwitch.mp3"
+                audio.volume = 0.2
+                audio.play()
+            }
             //ha még nem indult el a játék akkor az első kattnál elindítjuk
             if (bigBoom === 0) {
                 gameStarted = true
@@ -261,7 +268,12 @@ function start() {
  * Játék lezárásáért felelős
  */
 function end() {
-    endScreenElement.hidden = false;
+    if (!solverOn) {
+        endScreenElement.hidden = false;
+    } else {
+        lameScreenElement.hidden = false;
+    }
+
     reset()
 }
 
@@ -271,14 +283,15 @@ function end() {
  * @returns {number} a kapott lépésekből kiszámított pontszám
  */
 function scoreGenerator(stepped) {
-    let stoop = stepped+10000
-    for (let i = 0; i < stepped; i++) {
+    let stoop = stepped + 10000
+    for (let i = 0; i < stepped + 10; i++) {
         //dobestupidme0nosqrt
-        stoop = stoop-Math.sqrt(stoop)
+        stoop = stoop - Math.sqrt(stoop)
     }
     return Math.round(stoop)
 }
-if (localStorage.length > 0){
+
+if (localStorage.length > 0) {
     listScores()
 }
 
@@ -333,16 +346,21 @@ c.addEventListener("click", function (e) {
 
     if (gameStarted) {
         normalStepSwitching(e)
-        song.src = ""
-        song.volume = 0.2
-        song.play()
+
         if (activeCircles.length === 0) {
-            song.src = "TitkosMari.mp3"
-            song.volume = 0.2
-            song.play()
-            gameStarted = false;
-            lastSteps = stepCount
-            end()
+            if (solverOn) {
+                gameStarted = false;
+                lastSteps = stepCount
+                end()
+            } else {
+                song.src = "TitkosMari.mp3"
+                song.volume = 0.2
+                song.play()
+                gameStarted = false;
+                lastSteps = stepCount
+                end()
+            }
+
         }
     }
 })
@@ -353,10 +371,23 @@ c.addEventListener("mousemove", function (e) {
     }
 })
 
+var el = document.getElementById("pull-chain");
+el.addEventListener("click", function() {
+    el.classList.toggle("pulled");
+    var lamp = document.getElementById('lamp');
+    if (lamp.classList.contains('on')) {
+        lamp.classList.remove('on');
+        lamp.classList.add('off');
+    } else {
+        lamp.classList.remove('off');
+        lamp.classList.add('on');
+    }
+}, false);
+
 let levels = [1, 2, 3]
 $(document).ready(function () {
     $(document.getElementById("reset")).click(function () {
-        if (bigBoom === 1){
+        if (bigBoom === 1) {
             allCircles = clone(startingPos)
             reset()
             travel
@@ -379,11 +410,10 @@ $(document).ready(function () {
             gameStarted = true
             solvableBoard(100)
         }
-        audio.src = "mixkit-cool-interface-click-tone-2568.wav"
+
+        audio.src = "mapGenSound.wav"
         audio.volume = 0.2
         audio.play()
-
-
     });
     levels.forEach(num => {
         $(document.getElementById("palya_valaszto").innerHTML += "<option value=" + num + ">" + num + "</option>")
@@ -392,24 +422,18 @@ $(document).ready(function () {
         solverOn = true
         solverStart()
     })
-    $(document.getElementById("palya_valaszto")).change(function () {
-        if (gameStarted) {
-            reset()
-            gameStarted = false
-            clearInterval(travel)
-            solvableBoard(100)
-        } else {
-            reset()
-            gameStarted = true
-            solvableBoard(100)
-        }
-    })
     $(document.getElementById("scoreToName")).click(function () {
         gloCount++
         localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps).toString())
         listScores()
-        endScreenElement.hidden = true
         end()
+        endScreenElement.hidden = true
+    })
+    $(document.getElementById("noobsAgree")).click(function () {
+        lameScreenElement.hidden = true
+        audio.src = "solverEndSound.mp3"
+        audio.volume = 0.2
+        audio.play()
     })
 });
 
@@ -425,11 +449,14 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+let global_generates = false;
+
 /**
  * Megoldható játéktáblát generál az alapján, hogy mesterséges kattintásokat hajt végre a pályán
  * @param clickNumber hányszor szeretnénk hogy kattintson véletlenszerűen
  */
 function solvableBoard(clickNumber) {
+    global_generates = true
     for (let i = 0; i < clickNumber; i++) {
         let x = getRandomInt(0, c.width)
         let y = getRandomInt(0, c.height)
@@ -437,8 +464,10 @@ function solvableBoard(clickNumber) {
         let event = new MouseEvent('click', {
             'view': window, 'bubbles': true, 'cancelable': true, 'clientX': x, 'clientY': y
         })
+
         normalStepSwitching(event)
     }
+    global_generates = false
     endScreenElement.hidden = true;
     reset()
     ctx.clearRect(0, 0, c.width, c.height);
@@ -461,13 +490,13 @@ function onlyLastRow() {
     activeCircles.forEach(circle => {
         let xi = parseInt(circle.id.slice(0, 1))
         //let yi = parseInt(circle.id.slice(1,2))
-        if (circle.active && xi !== 5) {
+        if (circle.active && xi !== sorok) {
             returnerList.isEndGame = false
         }
     })
     if (returnerList.isEndGame) {
         allCircles.forEach(circle => {
-            if (parseInt(circle.id.slice(0, 1)) === 5) {
+            if (parseInt(circle.id.slice(0, 1)) === sorok) {
                 circle.active ? returnerList.pos.push(1) : returnerList.pos.push(0)
             }
         })
@@ -515,7 +544,6 @@ function containingTheSame(array1, array2) {
 function solver() {
     if (solverOn) {
 
-
         onlyLastRow()
 
         if (onlyLastRow().isEndGame) {
@@ -547,7 +575,6 @@ function solver() {
                                 'clientY': spacy * 2
                             })
                             normalStepSwitching(event)
-
                         }
                     }
                     onlyLastRow()
@@ -557,7 +584,6 @@ function solver() {
                     }, 1000)
                 }
             }
-
 
         } else {
             for (let i = 0; i < allCircles.length; i++) {

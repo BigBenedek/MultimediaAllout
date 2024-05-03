@@ -23,23 +23,60 @@
     <source src="TitkosMari.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
-<div id="pull-chain">
-    <div class="chain"></div>
+<div id="pull-chain" class="">
+    <div class="chain" style="height: 50px;"></div>
     <div class="handle"></div>
 </div>
 
 <span class="text-primary" id="time">Eltelt idő: 0</span><br><span class="text-primary" id="steps">Lépések: 0</span>
 <br>
-<label class="text-primary">Szint:
+<label class="text-primary">Difficulty levels:
     <select id="palya_valaszto" class="form-select">
     </select>
 </label>
+<br>
 <button class="btn btn-outline-primary" id="genMap">GENERATE MAP</button>
 <button class="btn btn-outline-primary" id="reset">RESTART</button>
 <button class="btn btn-outline-primary" id="solve">SOLVE</button>
+<button class="btn btn-outline-primary" id="info" data-bs-toggle="modal" data-bs-target="#infoModal">Game info</button>
+
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog ">
+        <div class="modal-content bg-secondary text-white">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="infoModalLabel">Basic information</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body justify-content-around">
+                <p>
+                    LightsOut is a puzzle where you are given a grid of circles, or lights, with some <span class="text-black">dark</span> and others light. You must turn them all off by clicking on the circles. Each click toggles that circles and each of its immediate neighbors.
+                </p>
+                <p>If you want to start the game then select difficulty and hit  <span class="text-info">Generate Map</span></p>
+                <p>If you want to restart the game then hit  <span class="text-info">Restart</span></p>
+                <p>If you can not solve the puzzle but want to watch someone do it then hit <span class="text-info">Solve</span> but be ready for the consequences</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <br>
 <canvas id="vaszon" width="0" height="0"></canvas>
-<div id="scoreboard">HUH:</div>
+<div id="scoreboard" class="table-responsive p-1">
+    <table>
+        <thead>
+            <tr>
+                <th class="makeItBreakIt">Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody id="scoreStuff">
+
+        </tbody>
+    </table>
+</div>
 <div id="endScreen" hidden="hidden">
     <span class="endScreenText">You won!</span>
     <br>
@@ -50,7 +87,7 @@
 </div>
 <div id="lameScreen" hidden="hidden">
     <h1 style="color: orangered">You are bad at this game solve it without help...</h1>
-    <button id="noobsAgree">I agree</button>
+    <button id="noobsAgree" class="btn btn-success">I agree</button>
 </div>
 <script src="saved.js"></script>
 </body>

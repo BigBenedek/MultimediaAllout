@@ -34,14 +34,15 @@ let gameStarted = false
 //Játék kezdete után számolt kattintások alias lépések
 let stepCount = 0
 let timeCounter = 0
-steps.innerHTML = "Lépések:" + stepCount.toString()
+steps.innerHTML = "Steps taken: " + stepCount.toString()
 //Játék kezdete után indított időmérő
-timer.innerHTML = "Eltelt idő:" + timeCounter.toString()
+timer.innerHTML = "Time spent: " + formatSeconds(timeCounter).toString()
 //időmérő
 let travel = null
 let startingPos = []
 let solverOn = false
 let lastSteps = 0;
+let lastTime = 0;
 
 
 //A kör osztály
@@ -204,7 +205,7 @@ function normalStepSwitching(event) {
             }
             //minden körbe kattintásnál növeljük a számlálót
             if (gameStarted) {
-                steps.innerHTML = "Lépések:" + (++stepCount).toString()
+                steps.innerHTML = "Steps taken: " + (++stepCount).toString()
             }
             //kattintott kör és körülötte lévők átváltása
             circle.switch()
@@ -244,8 +245,8 @@ function reset() {
     bigBoom = 0
     timeCounter = 0
     stepCount = 0
-    steps.innerHTML = "Lépések:" + stepCount.toString()
-    timer.innerHTML = "Eltelt idő:" + timeCounter.toString()
+    steps.innerHTML = "Steps taken: " + stepCount.toString()
+    timer.innerHTML = "Time spent: " + formatSeconds(timeCounter).toString()
     clearInterval(travel)
 }
 
@@ -255,7 +256,7 @@ function reset() {
 function start() {
     if (gameStarted) {
         travel = setInterval(function () {
-            timer.innerHTML = "Eltelt idő:" + (++timeCounter).toString()
+            timer.innerHTML = "Time spent: " + formatSeconds(++timeCounter).toString()
         }, 1000);
     } else {
         gameStarted = true
@@ -263,6 +264,15 @@ function start() {
     }
 
 }
+
+function formatSeconds(totalSeconds) {
+    let date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+    date.setSeconds(totalSeconds);
+    return date.toISOString().substring(14, 19);
+}
+
+
+
 
 /**
  * Játék lezárásáért felelős
@@ -280,10 +290,11 @@ function end() {
 /**
  * Minél több lépésel indul, annál kevesebb lesz a pontszám
  * @param stepped kapott lépések
+ * @param theTime kapott idő
  * @returns {number} a kapott lépésekből kiszámított pontszám
  */
-function scoreGenerator(stepped) {
-    let stoop = stepped + 10000
+function scoreGenerator(stepped, theTime) {
+    let stoop = (stepped + 10000) - theTime
     for (let i = 0; i < stepped + 10; i++) {
         //dobestupidme0nosqrt
         stoop = stoop - Math.sqrt(stoop)
@@ -299,14 +310,15 @@ if (localStorage.length > 0) {
  * kilistázza a scoreboardot
  */
 function listScores() {
-    let willBe = "<br>"
+    let eas = document.getElementById("scoreStuff")
+        eas.innerHTML = ''
 
     for (let i = 1; i <= localStorage.length; i++) {
         if (localStorage.getItem(i.toString()) != null) {
-            willBe += '<p>' + localStorage.getItem(i.toString()) + '</p>'
+            eas.innerHTML += '<tr><td>' + localStorage.getItem(i.toString()).split('/')[0] + '</td>' + '<td>' + localStorage.getItem(i.toString()).split('/')[1] + '</td></tr>'
         }
     }
-    scoreboard.innerHTML = "Scores: " + willBe
+
 }
 
 /**
@@ -351,6 +363,7 @@ c.addEventListener("click", function (e) {
             if (solverOn) {
                 gameStarted = false;
                 lastSteps = stepCount
+                lastTime = timeCounter
                 end()
             } else {
                 song.src = "TitkosMari.mp3"
@@ -358,6 +371,7 @@ c.addEventListener("click", function (e) {
                 song.play()
                 gameStarted = false;
                 lastSteps = stepCount
+                lastTime = timeCounter
                 end()
             }
 
@@ -371,10 +385,13 @@ c.addEventListener("mousemove", function (e) {
     }
 })
 
-var el = document.getElementById("pull-chain");
+const el = document.getElementById("pull-chain");
 el.addEventListener("click", function() {
     el.classList.toggle("pulled");
-    var lamp = document.getElementById('lamp');
+    $(".chain", this).animate({
+        height: el.classList.contains("pulled") ? "100px" : "50px"
+    }, 500);
+    const lamp = document.getElementById('lamp');
     if (lamp.classList.contains('on')) {
         lamp.classList.remove('on');
         lamp.classList.add('off');
@@ -390,7 +407,6 @@ $(document).ready(function () {
         if (bigBoom === 1) {
             allCircles = clone(startingPos)
             reset()
-            travel
             gameStarted = true
             start()
             drawAll()
@@ -416,15 +432,18 @@ $(document).ready(function () {
         audio.play()
     });
     levels.forEach(num => {
-        $(document.getElementById("palya_valaszto").innerHTML += "<option value=" + num + ">" + num + "</option>")
+        let str = num === 1 ? "selected" : ''
+
+        $(document.getElementById("palya_valaszto").innerHTML +='<option value="'+ num + '"'+str+'>' + num + '</option>')
     })
+
     $(document.getElementById("solve")).click(function () {
         solverOn = true
         solverStart()
     })
     $(document.getElementById("scoreToName")).click(function () {
         gloCount++
-        localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps).toString())
+        localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps, lastTime).toString())
         listScores()
         end()
         endScreenElement.hidden = true

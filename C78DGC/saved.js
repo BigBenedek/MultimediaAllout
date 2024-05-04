@@ -120,9 +120,9 @@ class Circle {
 
     outline() {
         ctx.beginPath();
-        ctx.lineWidth = 4
+        ctx.lineWidth = 1
         ctx.strokeStyle = "red"
-        ctx.arc(this.x, this.y, 55, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 53, 0, Math.PI * 2);
         ctx.stroke();
     }
 
@@ -131,8 +131,8 @@ class Circle {
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
         ctx.strokeStyle = "red";
-        ctx.arc(this.x, this.y, 55, 0, Math.PI * 2);
-        ctx.lineWidth = 10;
+        ctx.arc(this.x, this.y, 53, 0, Math.PI * 2);
+        ctx.lineWidth = 6;
         ctx.stroke();
         ctx.restore();
     }
@@ -272,8 +272,6 @@ function formatSeconds(totalSeconds) {
 }
 
 
-
-
 /**
  * Játék lezárásáért felelős
  */
@@ -295,12 +293,26 @@ function end() {
  */
 function scoreGenerator(stepped, theTime) {
     let stoop = (stepped + 10000) - theTime
+    let difficulty = document.getElementById('palya_valaszto')
+
     for (let i = 0; i < stepped + 10; i++) {
         //dobestupidme0nosqrt
         stoop = stoop - Math.sqrt(stoop)
     }
+    switch (difficulty.value) {
+        case 'Beginner':
+            stoop /= 4
+            break
+        case 'Medium':
+            stoop /= 3
+            break
+        case 'Hard':
+            stoop /= 2
+            break
+    }
     return Math.round(stoop)
 }
+
 
 if (localStorage.length > 0) {
     listScores()
@@ -311,7 +323,7 @@ if (localStorage.length > 0) {
  */
 function listScores() {
     let eas = document.getElementById("scoreStuff")
-        eas.innerHTML = ''
+    eas.innerHTML = ''
 
     for (let i = 1; i <= localStorage.length; i++) {
         if (localStorage.getItem(i.toString()) != null) {
@@ -386,7 +398,7 @@ c.addEventListener("mousemove", function (e) {
 })
 
 const el = document.getElementById("pull-chain");
-el.addEventListener("click", function() {
+el.addEventListener("click", function () {
     el.classList.toggle("pulled");
     $(".chain", this).animate({
         height: el.classList.contains("pulled") ? "100px" : "50px"
@@ -401,7 +413,106 @@ el.addEventListener("click", function() {
     }
 }, false);
 
-let levels = [1, 2, 3]
+function genMapOnSelect() {
+    let difficulty = document.getElementById("palya_valaszto")
+    allCircles.forEach(circle => circle.setInactive())
+    global_generates = true
+    let clickable = []
+    //3 beégetett map a Beginner, Medium, Hard nehézségi fokozat ezek megadott pályát generálnak a Nightmare az megoldható randomot
+    if (difficulty.value === 'Nightmare') {
+        console.log("Nightmare should run")
+        if (gameStarted) {
+            reset()
+            gameStarted = false
+            clearInterval(travel)
+            solvableBoard(100)
+        } else {
+            reset()
+            gameStarted = true
+            solvableBoard(100)
+        }
+    } else if (difficulty.value === 'Hard') {
+        console.log("Hard should run")
+        if (gameStarted) {
+            reset()
+            gameStarted = false
+            clearInterval(travel)
+            solvableBoard(100)
+        } else {
+            reset()
+            gameStarted = true
+            solvableBoard(100)
+        }
+        clickable = [
+            allCircles[0],
+            allCircles[1],
+            allCircles[3],
+            allCircles[12],
+            allCircles[18]
+        ]
+    } else if (difficulty.value === 'Medium') {
+        console.log("Medium should run")
+        if (gameStarted) {
+            reset()
+            gameStarted = false
+            clearInterval(travel)
+        } else {
+            reset()
+            gameStarted = true
+        }
+        clickable = [
+            allCircles[0],
+            allCircles[2],
+            allCircles[13],
+            allCircles[20]
+        ]
+
+    } else if (difficulty.value === 'Beginner') {
+        console.log("Beginner should run")
+        if (gameStarted) {
+            reset()
+            gameStarted = false
+            clearInterval(travel)
+        } else {
+            reset()
+            gameStarted = true
+        }
+        clickable = [
+            allCircles[0],
+            allCircles[4],
+            allCircles[20],
+            allCircles[24]
+        ]
+    }
+    if (clickable !== []) {
+        for (let i = 0; i < clickable.length; i++) {
+            let event = new MouseEvent('click', {
+                'view': window,
+                'bubbles': true,
+                'cancelable': true, //1-számos elcsúszás korrigálás, ne legyen 0, hanem 1-től
+                'clientX': clickable[i].getX(),
+                'clientY': clickable[i].getY() + spacy
+            })
+            normalStepSwitching(event)
+        }
+    }
+    global_generates = false
+    reset()
+    ctx.clearRect(0, 0, c.width, c.height);
+    drawAll()
+
+    startingPos = clone(allCircles)
+    console.log(startingPos)
+    console.log(allCircles)
+    gameStarted = true
+    start()
+
+
+    audio.src = "mapGenSound.wav"
+    audio.volume = 0.2
+    audio.play()
+}
+let levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
 $(document).ready(function () {
     $(document.getElementById("reset")).click(function () {
         if (bigBoom === 1) {
@@ -413,32 +524,21 @@ $(document).ready(function () {
             endScreenElement.hidden = true
         }
 
-
+        console.log(allCircles)
     });
-    $(document.getElementById("genMap")).click(function () {
-        if (gameStarted) {
-            reset()
-            gameStarted = false
-            clearInterval(travel)
-            solvableBoard(100)
-        } else {
-            reset()
-            gameStarted = true
-            solvableBoard(100)
-        }
 
-        audio.src = "mapGenSound.wav"
-        audio.volume = 0.2
-        audio.play()
+    $(document.getElementById("genMap")).click(function () {
+        genMapOnSelect()
     });
     levels.forEach(num => {
-        let str = num === 1 ? "selected" : ''
+        let str = num === '1' ? "selected" : ''
 
-        $(document.getElementById("palya_valaszto").innerHTML +='<option value="'+ num + '"'+str+'>' + num + '</option>')
+        $(document.getElementById("palya_valaszto").innerHTML += '<option value="' + num + '"' + str + '>' + num + '</option>')
     })
 
     $(document.getElementById("solve")).click(function () {
         solverOn = true
+        console.log(allCircles)
         solverStart()
     })
     $(document.getElementById("scoreToName")).click(function () {
@@ -561,6 +661,7 @@ function containingTheSame(array1, array2) {
  */
 
 function solver() {
+
     if (solverOn) {
 
         onlyLastRow()

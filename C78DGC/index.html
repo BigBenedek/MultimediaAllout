@@ -31,7 +31,7 @@
 <span class="text-primary" id="time">Eltelt idő: 0</span><br><span class="text-primary" id="steps">Lépések: 0</span>
 <br>
 <label class="text-primary">Difficulty levels:
-    <select id="palya_valaszto" class="form-select">
+    <select id="palya_valaszto" onchange="genMapOnSelect()" class="form-select">
     </select>
 </label>
 <br>
@@ -52,8 +52,11 @@
                     LightsOut is a puzzle where you are given a grid of circles, or lights, with some <span class="text-black">dark</span> and others light. You must turn them all off by clicking on the circles. Each click toggles that circles and each of its immediate neighbors.
                 </p>
                 <p>If you want to start the game then select difficulty and hit  <span class="text-info">Generate Map</span></p>
-                <p>If you want to restart the game then hit  <span class="text-info">Restart</span></p>
+                <p>For playing lower difficulties than nightmare you get <span class="text-info">reduced scores</span></p>
                 <p>If you can not solve the puzzle but want to watch someone do it then hit <span class="text-info">Solve</span> but be ready for the consequences</p>
+                <p>After you used <span class="text-info">Solve</span> you will have to <span class="text-info"> re- Generate the map</span> because now you know how to solve it. It works like this at the first 3 difficulty levels but those are always the same</p>
+                <p>If you want to restart the game then hit  <span class="text-info">Restart</span></p>
+                <p>After using <span class="text-info">Restart</span> the solver will only help you down to the last row</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

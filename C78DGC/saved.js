@@ -121,8 +121,8 @@ class Circle {
 
     outline() {
         ctx.beginPath();
-        ctx.lineWidth = 1
-        ctx.strokeStyle = "red"
+        ctx.lineWidth = 3
+        ctx.strokeStyle = "green"
         ctx.arc(this.x, this.y, 53, 0, Math.PI * 2);
         ctx.stroke();
     }
@@ -131,7 +131,7 @@ class Circle {
         ctx.save();
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = "green";
         ctx.arc(this.x, this.y, 53, 0, Math.PI * 2);
         ctx.lineWidth = 6;
         ctx.stroke();

@@ -437,11 +437,9 @@ function genMapOnSelect() {
             reset()
             gameStarted = false
             clearInterval(travel)
-            solvableBoard(100)
         } else {
             reset()
             gameStarted = true
-            solvableBoard(100)
         }
         clickable = [
             allCircles[0],
@@ -497,13 +495,11 @@ function genMapOnSelect() {
         }
     }
     global_generates = false
+    endScreenElement.hidden = true;
     reset()
     ctx.clearRect(0, 0, c.width, c.height);
     drawAll()
-
     startingPos = clone(allCircles)
-    console.log(startingPos)
-    console.log(allCircles)
     gameStarted = true
     start()
 
@@ -524,11 +520,12 @@ $(document).ready(function () {
             endScreenElement.hidden = true
         }
 
-        console.log(allCircles)
+
     });
 
     $(document.getElementById("genMap")).click(function () {
         genMapOnSelect()
+
     });
     levels.forEach(num => {
         let str = num === '1' ? "selected" : ''
@@ -538,7 +535,7 @@ $(document).ready(function () {
 
     $(document.getElementById("solve")).click(function () {
         solverOn = true
-        console.log(allCircles)
+
         solverStart()
     })
     $(document.getElementById("scoreToName")).click(function () {

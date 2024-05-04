@@ -6,10 +6,11 @@ const nameField = document.getElementById("name")
 const nameAddButton = document.getElementById("scoreToName")
 const steps = document.getElementById("steps")
 const timer = document.getElementById("time")
-const endScreenElement = document.getElementById("endScreen")
 const lameScreenElement = document.getElementById("lameScreen")
 const audio = document.getElementById("sound")
 const song = document.getElementById("song")
+const fake_cursor = document.getElementById("fake-cursor")
+fake_cursor.style.display = "none"
 //var bckg = new Audio('')
 
 const sorok = 5;
@@ -167,6 +168,8 @@ function goodCirclesBack(i, j) {
  * Megrajzolja az összes kört és állapotuk szerint 2 külön listába rakja őket
  */
 function drawAll() {
+    activeCircles = []
+    inactiveCircles = []
     allCircles.forEach(circle => {
         if (circle.active) {
             activeCircles.push(circle)
@@ -210,6 +213,8 @@ function normalStepSwitching(event) {
             //kattintott kör és körülötte lévők átváltása
             circle.switch()
             if (solverOn) {
+                fake_cursor.style.left = circle.getX() + "px"
+                fake_cursor.style.top = circle.getY()+spacy + "px"
                 circle.outline()
             }
             let xi = parseInt(circle.id.slice(0, 1))
@@ -242,6 +247,7 @@ startingMap()
 function reset() {
     solverOn = false
     gameStarted = false
+    fake_cursor.style.display = "none"
     bigBoom = 0
     timeCounter = 0
     stepCount = 0
@@ -277,9 +283,10 @@ function formatSeconds(totalSeconds) {
  */
 function end() {
     if (!solverOn) {
-        endScreenElement.hidden = false;
+        $('#endScreenModal').modal('toggle');
     } else {
-        lameScreenElement.hidden = false;
+        $('#lameScreenModal').modal('toggle');
+
     }
 
     reset()
@@ -370,7 +377,6 @@ c.addEventListener("click", function (e) {
 
     if (gameStarted) {
         normalStepSwitching(e)
-
         if (activeCircles.length === 0) {
             if (solverOn) {
                 gameStarted = false;
@@ -495,7 +501,6 @@ function genMapOnSelect() {
         }
     }
     global_generates = false
-    endScreenElement.hidden = true;
     reset()
     ctx.clearRect(0, 0, c.width, c.height);
     drawAll()
@@ -512,15 +517,13 @@ let levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
 $(document).ready(function () {
     $(document.getElementById("reset")).click(function () {
         if (bigBoom === 1) {
+            solverOn = false;
             allCircles = clone(startingPos)
             reset()
             gameStarted = true
             start()
             drawAll()
-            endScreenElement.hidden = true
         }
-
-
     });
 
     $(document.getElementById("genMap")).click(function () {
@@ -534,21 +537,24 @@ $(document).ready(function () {
     })
 
     $(document.getElementById("solve")).click(function () {
+        fake_cursor.style.display = "block"
         solverOn = true
-
-        solverStart()
+        solver()
     })
     $(document.getElementById("scoreToName")).click(function () {
         gloCount++
-        localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps, lastTime).toString())
+        if (nameField.value.trim() !== ""){
+            localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps, lastTime).toString())
+        }else {
+            localStorage.setItem(gloCount.toString(), "Anonymous" + "/" + scoreGenerator(lastSteps, lastTime).toString())
+
+        }
         listScores()
         end()
-        endScreenElement.hidden = true
     })
     $(document.getElementById("noobsAgree")).click(function () {
-        lameScreenElement.hidden = true
         audio.src = "solverEndSound.mp3"
-        audio.volume = 0.2
+        audio.volume = 0.1
         audio.play()
     })
 });
@@ -584,7 +590,6 @@ function solvableBoard(clickNumber) {
         normalStepSwitching(event)
     }
     global_generates = false
-    endScreenElement.hidden = true;
     reset()
     ctx.clearRect(0, 0, c.width, c.height);
     drawAll()
@@ -658,12 +663,12 @@ function containingTheSame(array1, array2) {
  */
 
 function solver() {
-
+    solverOn = true
     if (solverOn) {
 
-        onlyLastRow()
+        let lastRow = onlyLastRow()
 
-        if (onlyLastRow().isEndGame) {
+        if (lastRow.isEndGame) {
             //utolsó soros patternek
             let endPatterns = [{
                 bot: [0, 0, 1, 1, 1], top: [0, 0, 0, 1, 0]
@@ -698,7 +703,7 @@ function solver() {
 
                     return setTimeout(() => {
                         solver()
-                    }, 1000)
+                    }, 800)
                 }
             }
 
@@ -713,6 +718,7 @@ function solver() {
                     for (let j = 0; j < allCircles.length; j++) {
                         let above = allCircles[j];
                         if (above.id === (xi - 1).toString() + yi.toString() && above.active) {
+
                             let event = new MouseEvent('click', {
                                 'view': window,
                                 'bubbles': true,
@@ -723,17 +729,14 @@ function solver() {
                             normalStepSwitching(event)
                             return activeCircles.length === 0 ? end() : setTimeout(() => {
                                 solver()
-                            }, 1000);
+                            }, 800);
                         }
                     }
                 }
             }
         }
     }
-}
-
-function solverStart() {
-    solver()
+    console.log(activeCircles)
 }
 
 /**

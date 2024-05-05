@@ -1,33 +1,35 @@
 //A canvas vásznunk
 const c = document.getElementById("vaszon")
 const ctx = c.getContext("2d")
-const scoreboard = document.getElementById("scoreboard")
 const nameField = document.getElementById("name")
-const nameAddButton = document.getElementById("scoreToName")
 const steps = document.getElementById("steps")
 const timer = document.getElementById("time")
-const lameScreenElement = document.getElementById("lameScreen")
 const audio = document.getElementById("sound")
 const song = document.getElementById("song")
 const fake_cursor = document.getElementById("fake-cursor")
-fake_cursor.style.display = "none"
+const el = document.getElementById("pull-chain");
+const levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
 //var bckg = new Audio('')
 
+//pálya mérete
 const sorok = 5;
 const oszlopok = 5;
 //Körök közti tér
 const spacx = 110
 const spacy = 110
-c.width = (oszlopok * 100) + 200;
-c.height = (sorok * 100) + 200
 
+//a mivel a localStorageben nem Jsonnal tárolok így egy változó tárolja a "kövi id-t"
 let gloCount = 0
+
 //Aktív körök listája
 let activeCircles = []
+
 //Inaktív körök listája
 let inactiveCircles = []
+
 //Az összes kör listája
 let allCircles = [];
+
 //Első kattintáskor játékindításhoz
 let bigBoom = 0
 let gameStarted = false
@@ -35,28 +37,48 @@ let gameStarted = false
 //Játék kezdete után számolt kattintások alias lépések
 let stepCount = 0
 let timeCounter = 0
-steps.innerHTML = "Steps taken: " + stepCount.toString()
-//Játék kezdete után indított időmérő
-timer.innerHTML = "Time spent: " + formatSeconds(timeCounter).toString()
+
 //időmérő
 let travel = null
+
+//kezdő pozíció a restarthoz
 let startingPos = []
+
+//solver be van-e kapcsolva
 let solverOn = false
+
+//Ha éppen mapot generálunk
+let global_generates = false;
+
+//lehet fölös
 let lastSteps = 0;
 let lastTime = 0;
+
+//Játék kezdete után indított időmérő és lépésszámláló
+steps.innerHTML = "Steps taken: " + stepCount.toString()
+timer.innerHTML = "Time spent: " + formatSeconds(timeCounter).toString()
+
+//canvas méretének beállítása
+c.width = (oszlopok * 100) + 200;
+c.height = (sorok * 100) + 200
+
+//hamis kurzor eltüntetése
+fake_cursor.style.display = "none"
 
 
 //A kör osztály
 class Circle {
     constructor(id, active, x, y) {
+
         //Azonosító -> hanyadik sor hanyadik oszlop első + első = 11
         this.id = id
+
         //Be van e kapcsolva, azaz aktív-e
         this.active = active
+
         //A kör középpontjának X,Y pozíciója
         this.x = x * spacx
         this.y = y * spacy
-
     }
 
     //A kör megrajzolására szolgáló metódus
@@ -111,14 +133,17 @@ class Circle {
         }
     }
 
+    //X kordi
     getX() {
         return this.x
     }
 
+    //Y kordi
     getY() {
         return this.y
     }
 
+    //körvonal
     outline() {
         ctx.beginPath();
         ctx.lineWidth = 3
@@ -127,6 +152,7 @@ class Circle {
         ctx.stroke();
     }
 
+    //körvonal leszedése
     clearOutline() {
         ctx.save();
         ctx.globalCompositeOperation = 'destination-out';
@@ -160,7 +186,6 @@ function startingMap() {
 function goodCirclesBack(i, j) {
     //Ő lesz az új körünk
     let newbie = new Circle(i.toString() + j.toString(), false, j, i)
-
     allCircles.push(newbie)
 }
 
@@ -214,7 +239,7 @@ function normalStepSwitching(event) {
             circle.switch()
             if (solverOn) {
                 fake_cursor.style.left = circle.getX() + "px"
-                fake_cursor.style.top = circle.getY()+spacy + "px"
+                fake_cursor.style.top = circle.getY() + spacy + "px"
                 circle.outline()
             }
             let xi = parseInt(circle.id.slice(0, 1))
@@ -235,11 +260,6 @@ function normalStepSwitching(event) {
         }
     }
 }
-
-/**
- * Kezdőpálya
- */
-startingMap()
 
 /**
  * Alapértékek visszaállításáért felelős
@@ -271,12 +291,16 @@ function start() {
 
 }
 
+/**
+ * Időmérő megformázása, alapelve, a DateISOStringjéből kiszedem a kellő perc,másodperc kombót
+ * @param totalSeconds megkapott másodpercek amit átalakítok
+ * @returns {string} az emberi szemnek és agynak könnyen feldolgozható formátum
+ */
 function formatSeconds(totalSeconds) {
     let date = new Date(0); // The 0 there is the key, which sets the date to the epoch
     date.setSeconds(totalSeconds);
     return date.toISOString().substring(14, 19);
 }
-
 
 /**
  * Játék lezárásáért felelős
@@ -288,12 +312,12 @@ function end() {
         $('#lameScreenModal').modal('toggle');
 
     }
-
     reset()
 }
 
 /**
- * Minél több lépésel indul, annál kevesebb lesz a pontszám
+ * Minél több lépésel indul és időt tölt el, annál kevesebb lesz a pontszám.
+ * Nehézségfokozat alapján kevesebb vagy több a pontszám
  * @param stepped kapott lépések
  * @param theTime kapott idő
  * @returns {number} a kapott lépésekből kiszámított pontszám
@@ -320,11 +344,6 @@ function scoreGenerator(stepped, theTime) {
     return Math.round(stoop)
 }
 
-
-if (localStorage.length > 0) {
-    listScores()
-}
-
 /**
  * kilistázza a scoreboardot
  */
@@ -347,6 +366,10 @@ function reloadedScores() {
     gloCount = localStorage.length
 }
 
+/**
+ * Kirajzolja annak a körnek a körvonalát, amely fölött van az egér
+ * @param event egérmozgatás(mousemove) event
+ */
 function onTheHover(event) {
     let rect = c.getBoundingClientRect()
     //canvason belüli kordinátákra hozás
@@ -365,60 +388,8 @@ function onTheHover(event) {
 }
 
 /**
- * Kattintásért felelős
+ * Megnézi a palya_valaszto elem értékét és az alapján generál pályát
  */
-
-c.addEventListener("click", function (e) {
-    /*if (bckg.paused){
-        bckg.volume = 0.01
-        bckg.loop = true
-        bckg.play();
-    }*/
-
-    if (gameStarted) {
-        normalStepSwitching(e)
-        if (activeCircles.length === 0) {
-            if (solverOn) {
-                gameStarted = false;
-                lastSteps = stepCount
-                lastTime = timeCounter
-                end()
-            } else {
-                song.src = "TitkosMari.mp3"
-                song.volume = 0.2
-                song.play()
-                gameStarted = false;
-                lastSteps = stepCount
-                lastTime = timeCounter
-                end()
-            }
-
-        }
-    }
-})
-
-c.addEventListener("mousemove", function (e) {
-    if (!solverOn && gameStarted) {
-        onTheHover(e)
-    }
-})
-
-const el = document.getElementById("pull-chain");
-el.addEventListener("click", function () {
-    el.classList.toggle("pulled");
-    $(".chain", this).animate({
-        height: el.classList.contains("pulled") ? "100px" : "50px"
-    }, 500);
-    const lamp = document.getElementById('lamp');
-    if (lamp.classList.contains('on')) {
-        lamp.classList.remove('on');
-        lamp.classList.add('off');
-    } else {
-        lamp.classList.remove('off');
-        lamp.classList.add('on');
-    }
-}, false);
-
 function genMapOnSelect() {
     let difficulty = document.getElementById("palya_valaszto")
     allCircles.forEach(circle => circle.setInactive())
@@ -426,7 +397,6 @@ function genMapOnSelect() {
     let clickable = []
     //3 beégetett map a Beginner, Medium, Hard nehézségi fokozat ezek megadott pályát generálnak a Nightmare az megoldható randomot
     if (difficulty.value === 'Nightmare') {
-        console.log("Nightmare should run")
         if (gameStarted) {
             reset()
             gameStarted = false
@@ -438,7 +408,6 @@ function genMapOnSelect() {
             solvableBoard(100)
         }
     } else if (difficulty.value === 'Hard') {
-        console.log("Hard should run")
         if (gameStarted) {
             reset()
             gameStarted = false
@@ -455,7 +424,6 @@ function genMapOnSelect() {
             allCircles[18]
         ]
     } else if (difficulty.value === 'Medium') {
-        console.log("Medium should run")
         if (gameStarted) {
             reset()
             gameStarted = false
@@ -472,7 +440,6 @@ function genMapOnSelect() {
         ]
 
     } else if (difficulty.value === 'Beginner') {
-        console.log("Beginner should run")
         if (gameStarted) {
             reset()
             gameStarted = false
@@ -508,56 +475,10 @@ function genMapOnSelect() {
     gameStarted = true
     start()
 
-
     audio.src = "mapGenSound.wav"
     audio.volume = 0.2
     audio.play()
 }
-let levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
-$(document).ready(function () {
-    $(document.getElementById("reset")).click(function () {
-        if (bigBoom === 1) {
-            solverOn = false;
-            allCircles = clone(startingPos)
-            reset()
-            gameStarted = true
-            start()
-            drawAll()
-        }
-    });
-
-    $(document.getElementById("genMap")).click(function () {
-        genMapOnSelect()
-
-    });
-    levels.forEach(num => {
-        let str = num === '1' ? "selected" : ''
-
-        $(document.getElementById("palya_valaszto").innerHTML += '<option value="' + num + '"' + str + '>' + num + '</option>')
-    })
-
-    $(document.getElementById("solve")).click(function () {
-        fake_cursor.style.display = "block"
-        solverOn = true
-        solver()
-    })
-    $(document.getElementById("scoreToName")).click(function () {
-        gloCount++
-        if (nameField.value.trim() !== ""){
-            localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps, lastTime).toString())
-        }else {
-            localStorage.setItem(gloCount.toString(), "Anonymous" + "/" + scoreGenerator(lastSteps, lastTime).toString())
-
-        }
-        listScores()
-        end()
-    })
-    $(document.getElementById("noobsAgree")).click(function () {
-        audio.src = "solverEndSound.mp3"
-        audio.volume = 0.1
-        audio.play()
-    })
-});
 
 /**
  * Function to generate a random number between min and max: a random clickkek generálásához, hogy megoldható pálya legyen
@@ -570,8 +491,6 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-let global_generates = false;
 
 /**
  * Megoldható játéktáblát generál az alapján, hogy mesterséges kattintásokat hajt végre a pályán
@@ -627,21 +546,6 @@ function onlyLastRow() {
 }
 
 /**
- * Megkeresi a megadott idvel rendelkező kört és visszatér vele
- * @param id a megadott id
- * @returns {number} a megtalált kör
- */
-function whichCircle(id) {
-    let talalt = 0
-    allCircles.forEach(keresett => {
-        if (keresett.id === id) {
-            talalt = keresett
-        }
-    })
-    return talalt
-}
-
-/**
  * Megnézi hogy két array "ugyanazt" tartalmazza-e
  * @param array1
  * @param array2
@@ -661,7 +565,6 @@ function containingTheSame(array1, array2) {
  * Megoldja a játékot a "Chase the light" elven, ameddig nem csak az utolsó sorban vannak aktív körök addig hívja magát, majd választ az ismert patternek közül és ismét meghívja magát
  * @returns {void|*}
  */
-
 function solver() {
     solverOn = true
     if (solverOn) {
@@ -736,7 +639,6 @@ function solver() {
             }
         }
     }
-    console.log(activeCircles)
 }
 
 /**
@@ -752,6 +654,125 @@ function clone(masolando) {
     return masolt
 }
 
+/**
+ * Ha betöltödik a DOM akkor fut
+ */
+$(document).ready(function () {
+    //ha nem üres akkor betöltjük az adatokat
+    if (localStorage.length > 0) {
+        listScores()
+    }
+    $(document.getElementById("reset")).click(function () {
+        if (bigBoom === 1) {
+            solverOn = false;
+            allCircles = clone(startingPos)
+            reset()
+            gameStarted = true
+            start()
+            drawAll()
+        }
+    });
+
+    $(document.getElementById("genMap")).click(function () {
+        genMapOnSelect()
+
+    });
+    levels.forEach(num => {
+        let str = num === '1' ? "selected" : ''
+
+        $(document.getElementById("palya_valaszto").innerHTML += '<option value="' + num + '"' + str + '>' + num + '</option>')
+    })
+
+    $(document.getElementById("solve")).click(function () {
+        fake_cursor.style.display = "block"
+        solverOn = true
+        solver()
+    })
+    $(document.getElementById("scoreToName")).click(function () {
+        gloCount++
+        if (nameField.value.trim() !== "") {
+            localStorage.setItem(gloCount.toString(), nameField.value + "/" + scoreGenerator(lastSteps, lastTime).toString())
+        } else {
+            localStorage.setItem(gloCount.toString(), "Anonymous" + "/" + scoreGenerator(lastSteps, lastTime).toString())
+
+        }
+        listScores()
+        end()
+    })
+    $(document.getElementById("noobsAgree")).click(function () {
+        audio.src = "solverEndSound.mp3"
+        audio.volume = 0.1
+        audio.play()
+    })
+});
+
+/**
+ * Kattintásért felelős hallgató
+ */
+c.addEventListener("click", function (e) {
+    /*if (bckg.paused){
+        bckg.volume = 0.01
+        bckg.loop = true
+        bckg.play();
+    }*/
+
+    if (gameStarted) {
+        normalStepSwitching(e)
+        if (activeCircles.length === 0) {
+            if (solverOn) {
+                gameStarted = false;
+                lastSteps = stepCount
+                lastTime = timeCounter
+                end()
+            } else {
+                song.src = "TitkosMari.mp3"
+                song.volume = 0.2
+                song.play()
+                gameStarted = false;
+                lastSteps = stepCount
+                lastTime = timeCounter
+                end()
+            }
+
+        }
+    }
+})
+
+/**
+ * Egérmozgatásért felelős hallgató
+ */
+c.addEventListener("mousemove", function (e) {
+    if (!solverOn && gameStarted) {
+        onTheHover(e)
+    }
+})
+
+/**
+ * Lámpa madzag imitátor
+ */
+el.addEventListener("click", function () {
+    el.classList.toggle("pulled");
+    $(".chain", this).animate({
+        height: el.classList.contains("pulled") ? "100px" : "50px"
+    }, 500);
+    const lamp = document.getElementById('lamp');
+    if (lamp.classList.contains('on')) {
+        lamp.classList.remove('on');
+        lamp.classList.add('off');
+    } else {
+        lamp.classList.remove('off');
+        lamp.classList.add('on');
+    }
+}, false);
+
+/**
+ * Kezdőpálya
+ */
+startingMap()
+
+/**
+ * Pontszámok betöltése
+ */
 reloadedScores()
 
 

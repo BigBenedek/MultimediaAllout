@@ -9,7 +9,7 @@ const song = document.getElementById("song")
 const fake_cursor = document.getElementById("fake-cursor")
 const el = document.getElementById("pull-chain");
 const levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
-//var bckg = new Audio('')
+let bckg = new Audio("public/music/tuna.mp3")
 
 //pálya mérete
 const sorok = 5;
@@ -53,6 +53,9 @@ let global_generates = false;
 //lehet fölös
 let lastSteps = 0;
 let lastTime = 0;
+
+//mute sound
+let notmuted = true;
 
 //Játék kezdete után indított időmérő és lépésszámláló
 steps.innerHTML = "Steps taken: " + stepCount.toString()
@@ -222,7 +225,7 @@ function normalStepSwitching(event) {
         let distance = Math.sqrt(dx * dx + dy * dy)
         if (distance < 50) {
             if (!global_generates) {
-                audio.src = "lightSwitch.mp3"
+                audio.src = "public/music/lightSwitch.mp3"
                 audio.volume = 0.2
                 audio.play()
             }
@@ -475,7 +478,7 @@ function genMapOnSelect() {
     gameStarted = true
     start()
 
-    audio.src = "mapGenSound.wav"
+    audio.src = "public/music/mapGenSound.wav"
     audio.volume = 0.2
     audio.play()
 }
@@ -675,7 +678,16 @@ $(document).ready(function () {
 
     $(document.getElementById("genMap")).click(function () {
         genMapOnSelect()
-
+    });
+    $(document.getElementById("mute")).click(function () {
+        notmuted = !notmuted
+        if (notmuted === false){
+            bckg.volume = 0
+        }else {
+            bckg.volume = 0.01
+        }
+        let mute = document.getElementById("mute")
+        mute.innerText = (notmuted ? "Mute" : "Unmute") + " background music"
     });
     levels.forEach(num => {
         let str = num === '1' ? "selected" : ''
@@ -700,7 +712,7 @@ $(document).ready(function () {
         end()
     })
     $(document.getElementById("noobsAgree")).click(function () {
-        audio.src = "solverEndSound.mp3"
+        audio.src = "public/music/solverEndSound.mp3"
         audio.volume = 0.1
         audio.play()
     })
@@ -710,22 +722,25 @@ $(document).ready(function () {
  * Kattintásért felelős hallgató
  */
 c.addEventListener("click", function (e) {
-    /*if (bckg.paused){
+    if (bckg.paused && notmuted){
         bckg.volume = 0.01
         bckg.loop = true
         bckg.play();
-    }*/
-
+    }
     if (gameStarted) {
         normalStepSwitching(e)
         if (activeCircles.length === 0) {
+            bckg.pause()
+            setTimeout(()=>{
+                bckg.play();
+            },8000)
             if (solverOn) {
                 gameStarted = false;
                 lastSteps = stepCount
                 lastTime = timeCounter
                 end()
             } else {
-                song.src = "TitkosMari.mp3"
+                song.src = "public/music/TitkosMari.mp3"
                 song.volume = 0.2
                 song.play()
                 gameStarted = false;

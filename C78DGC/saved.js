@@ -748,7 +748,7 @@ c.addEventListener("mousemove", function (e) {
 })
 
 /**
- * Lámpa madzag imitátor
+ * Lámpakapcsoló zsinór vagy mi imitátor
  */
 el.addEventListener("click", function () {
     el.classList.toggle("pulled");

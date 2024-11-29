@@ -725,7 +725,7 @@ c.addEventListener("click", function (e) {
     if (bckg.paused && notmuted){
         bckg.volume = 0.01
         bckg.loop = true
-        bckg.play();
+        bckg.play().then(r =>  console.log());
     }
     if (gameStarted) {
         normalStepSwitching(e)

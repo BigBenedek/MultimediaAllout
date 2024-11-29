@@ -3,8 +3,6 @@ const express = require("express")
 const app = express()
 const path = require("path");
 
-
-
 // Közös middleware-ek és beállítások
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,8 +14,11 @@ app.use("/pictures",express.static(path.join(__dirname, 'public/pictures')))
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs')
 
-app.get("/", (req, res)=>{
+app.get("/*", (req, res)=>{
     ////werewrwerw
     res.render("index.ejs")
 })
-app.listen(3000)
+
+app.listen(8080)
+
+module.exports = app;

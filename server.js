@@ -1,7 +1,9 @@
 //npmmel letöltve
 const express = require("express")
-const app = express()
 const path = require("path");
+const serverless = require("serverless-http");
+
+const app = express()
 
 // Közös middleware-ek és beállítások
 app.use(express.json());
@@ -19,6 +21,4 @@ app.get("/*", (req, res)=>{
     res.render("index.ejs")
 })
 
-app.listen(8080)
-
-module.exports = app;
+module.exports = serverless(app);

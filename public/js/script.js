@@ -9,7 +9,7 @@ const song = document.getElementById("song")
 const fake_cursor = document.getElementById("fake-cursor")
 const el = document.getElementById("pull-chain");
 const levels = ['Beginner', 'Medium', 'Hard', 'Nightmare']
-let bckg = new Audio("music/tuna.mp3")
+let bckg = new Audio("/music/tuna.mp3")
 
 //pálya mérete
 const sorok = 5;
@@ -225,7 +225,7 @@ function normalStepSwitching(event) {
         let distance = Math.sqrt(dx * dx + dy * dy)
         if (distance < 50) {
             if (!global_generates) {
-                audio.src = "music/lightSwitch.mp3"
+                audio.src = "/music/lightSwitch.mp3"
                 audio.volume = 0.2
                 audio.play()
             }
@@ -478,7 +478,7 @@ function genMapOnSelect() {
     gameStarted = true
     start()
 
-    audio.src = "music/mapGenSound.wav"
+    audio.src = "/music/mapGenSound.wav"
     audio.volume = 0.2
     audio.play()
 }
@@ -712,7 +712,7 @@ $(document).ready(function () {
         end()
     })
     $(document.getElementById("noobsAgree")).click(function () {
-        audio.src = "music/solverEndSound.mp3"
+        audio.src = "/music/solverEndSound.mp3"
         audio.volume = 0.1
         audio.play()
     })
@@ -740,7 +740,7 @@ c.addEventListener("click", function (e) {
                 lastTime = timeCounter
                 end()
             } else {
-                song.src = "music/TitkosMari.mp3"
+                song.src = "/music/TitkosMari.mp3"
                 song.volume = 0.2
                 song.play()
                 gameStarted = false;

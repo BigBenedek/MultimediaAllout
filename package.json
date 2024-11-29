@@ -2,7 +2,7 @@
   "name": "multimedia-allout",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js",
+    "start": "node api/server.js",
     "vercel-build": "echo 'Vercel Build Complete'"
   },
   "dependencies": {

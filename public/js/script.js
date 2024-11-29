@@ -732,7 +732,7 @@ c.addEventListener("click", function (e) {
         if (activeCircles.length === 0) {
             bckg.pause()
             setTimeout(()=>{
-                bckg.play();
+                bckg.play().then(r => console.log());
             },8000)
             if (solverOn) {
                 gameStarted = false;

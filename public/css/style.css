@@ -306,7 +306,7 @@ body {
 }
 
 .on #scoreboard {
-    background: var(--bg-light);
+    background: #ffffff00;;
     color: var(--text-primary);
 }
 

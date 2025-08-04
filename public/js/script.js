@@ -1082,6 +1082,7 @@ function solver() {
     solverOn = true
     if (solverOn) {
         
+        
         let lastRow = onlyLastRow()
 
         if (lastRow.isEndGame) {

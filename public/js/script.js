@@ -6,7 +6,6 @@ const steps = document.getElementById("steps")
 const timer = document.getElementById("time")
 const audio = document.getElementById("sound")
 const song = document.getElementById("song")
-const fake_cursor = document.getElementById("fake-cursor")
 const el = document.getElementById("pull-chain");
 const levels = ['Kezdő', 'Közepes', 'Nehéz', 'Rémálom']
 const levelsEn = ['Beginner', 'Medium', 'Hard', 'Nightmare']
@@ -478,8 +477,7 @@ function adjustCanvasSize() {
     }
 }
 
-//hamis kurzor eltüntetése
-fake_cursor.style.display = "none"
+//hamis kurzor eltüntetése - ELTÁVOLÍTVA
 
 
 /**
@@ -487,8 +485,8 @@ fake_cursor.style.display = "none"
  * @returns {{activeColor: string, inactiveColor: string}} aktív és inaktív körök színei
  */
 function getThemeColors() {
-    const body = document.body;
-    const isDarkMode = body.classList.contains('off');
+    const lamp = document.getElementById('lamp');
+    const isDarkMode = lamp.classList.contains('off');
     
     if (isDarkMode) {
         return {
@@ -497,8 +495,8 @@ function getThemeColors() {
         };
     } else {
         return {
-            activeColor: "#f1c40f",    // Piros aktív körök világos módban
-            inactiveColor: "#2c3e501a"   // Sötétszürke inaktív körök világos módban
+            activeColor: "#f1c40f",    // Sárga aktív körök világos módban is
+            inactiveColor: "#d3d3d3ff"   // Jól látható sötétszürke inaktív körök világos módban
         }
     }
 }
@@ -661,9 +659,18 @@ function drawAll() {
  */
 function canvasToPageCoordinates(canvasX, canvasY) {
     let rect = c.getBoundingClientRect()
+    
+    // Figyelembe vesszük a canvas scaling-ét
+    let scaleX = rect.width / c.width;
+    let scaleY = rect.height / c.height;
+    
+    // Skálázott koordináták számítása
+    let scaledX = canvasX * scaleX;
+    let scaledY = canvasY * scaleY;
+    
     return {
-        x: canvasX + rect.left,
-        y: canvasY + rect.top
+        x: scaledX + rect.left,
+        y: scaledY + rect.top
     }
 }
 
@@ -715,11 +722,6 @@ function normalStepSwitching(event) {
         }
         //kattintott kör és körülötte lévők átváltása
         closestCircle.switch()
-        if (solverOn) {
-            let rect = c.getBoundingClientRect()
-            fake_cursor.style.left = (closestCircle.getX()) + "px"
-            fake_cursor.style.top = (closestCircle.getY()) + "px"
-        }
         let xi = parseInt(closestCircle.id.slice(0, 1))
         let yi = parseInt(closestCircle.id.slice(1, 2))
         let xm1 = (xi - 1).toString() + yi.toString()
@@ -745,7 +747,6 @@ function normalStepSwitching(event) {
 function reset() {
     solverOn = false
     gameStarted = false
-    fake_cursor.style.display = "none"
     bigBoom = 0
     timeCounter = 0
     stepCount = 0
@@ -1067,47 +1068,53 @@ function containingTheSame(array1, array2) {
 }
 
 /**
- * Megoldja a játékot a "Chase the light" elven, ameddig nem csak az utolsó sorban vannak aktív körök addig hívja magát, majd választ az ismert patternek közül és ismét meghívja magát
+ * Megoldja a játékot a "Chase the light" elven, ameddig nem csak az utolsó sorban vannak aktív körök addig hívja magát, majd választ az ismert patternek közül és ismét meghívja magát (Univerzális megoldás)
  * @returns {void|*}
  */
 function solver() {
     solverOn = true
     if (solverOn) {
-
+        
         let lastRow = onlyLastRow()
 
         if (lastRow.isEndGame) {
             //utolsó soros patternek
             let endPatterns = [{
-                bot: [0, 0, 1, 1, 1], top: [0, 0, 0, 1, 0]
+                bot: [0, 0, 1, 1, 1], top: [0, 0, 0, 1, 0], toClick: ['14']
             }, {
-                bot: [0, 1, 0, 1, 0], top: [0, 1, 0, 0, 1]
+                bot: [0, 1, 0, 1, 0], top: [0, 1, 0, 0, 1], toClick: ['12','15']
             }, {
-                bot: [0, 1, 1, 0, 1], top: [1, 0, 0, 0, 0]
+                bot: [0, 1, 1, 0, 1], top: [1, 0, 0, 0, 0], toClick: ['11']
             }, {
-                bot: [1, 0, 0, 0, 1], top: [0, 0, 0, 1, 1]
+                bot: [1, 0, 0, 0, 1], top: [0, 0, 0, 1, 1], toClick: ['14', '15']
             }, {
-                bot: [1, 0, 1, 1, 0], top: [0, 0, 0, 0, 1]
+                bot: [1, 0, 1, 1, 0], top: [0, 0, 0, 0, 1], toClick: ['15']
             }, {
-                bot: [1, 1, 0, 1, 1], top: [0, 0, 1, 0, 0]
+                bot: [1, 1, 0, 1, 1], top: [0, 0, 1, 0, 0], toClick: ['13']
             }, {
-                bot: [1, 1, 1, 0, 0], top: [0, 1, 0, 0, 0]
+                bot: [1, 1, 1, 0, 0], top: [0, 1, 0, 0, 0], toClick: ['12']
             }]
             for (let i = 0; i < endPatterns.length; i++) {
                 if (containingTheSame(endPatterns[i].bot, onlyLastRow().pos)) {
                     for (let j = 0; j <= endPatterns[i].top.length; j++) {
                         if (endPatterns[i].top[j] === 1) {
-                            let canvasX = (1 + j) * spacx - (spacx / 2)
-                            let canvasY = spacy - (spacy / 2)
-                            let pageCoords = canvasToPageCoordinates(canvasX, canvasY)
-                            let event = new MouseEvent('click', {
-                                'view': window,
-                                'bubbles': true,
-                                'cancelable': true, //1-számos elcsúszás korrigálás, ne legyen 0, hanem 1-től
-                                'clientX': pageCoords.x,
-                                'clientY': pageCoords.y
-                            })
-                            normalStepSwitching(event)
+                            let clickAt = '1' + ((j+1).toString())
+                            for (let k = 0; k < allCircles.length; k++) {
+                                if (allCircles[k].id === clickAt) {
+                                    let canvasX = allCircles[k].getX()
+                                    let canvasY = allCircles[k].getY()
+                                    let pageCoords = canvasToPageCoordinates(canvasX, canvasY)
+                                    let event = new MouseEvent('click', {
+                                        'view': window,
+                                        'bubbles': true,
+                                        'cancelable': true, //1-számos elcsúszás korrigálás, ne legyen 0, hanem 1-től
+                                        'clientX': pageCoords.x,
+                                        'clientY': pageCoords.y
+                                    })
+                                    normalStepSwitching(event)
+                                    //debugger;
+                                }
+                            }
                         }
                     }
                     onlyLastRow()
@@ -1128,8 +1135,10 @@ function solver() {
                 if (xi > 1) {
                     for (let j = 0; j < allCircles.length; j++) {
                         let above = allCircles[j];
+                        //console.log("Found active circle above: " + above.id);
                         if (above.id === (xi - 1).toString() + yi.toString() && above.active) {
 
+                            
                             let pageCoords = canvasToPageCoordinates(circle.getX(), circle.getY())
                             let event = new MouseEvent('click', {
                                 'view': window,
@@ -1240,9 +1249,10 @@ $(document).ready(function () {
     });
     
     $(document.getElementById("solve")).click(function () {
-        fake_cursor.style.display = "block"
-        solverOn = true
-        solver()
+        if (!solverOn && activeCircles.length > 0) {
+            solverOn = true
+            solver()
+        }
     })
     $(document.getElementById("scoreToName")).click(function () {
         gloCount++
@@ -1256,8 +1266,41 @@ $(document).ready(function () {
         end()
     })
     $(document.getElementById("noobsAgree")).click(function () {
-        playSound("/music/solverEndSound.mp3", 0.1)
+        playSound("/music/solverEndSound.mp3", null)
     })
+    
+    // Modal accessibility fixes
+    $('#lameScreenModal').on('show.bs.modal', function () {
+        // Remove aria-hidden when modal is being shown
+        $(this).removeAttr('aria-hidden');
+    });
+    
+    $('#lameScreenModal').on('shown.bs.modal', function () {
+        // Ensure aria-hidden is not set when modal is fully shown
+        $(this).removeAttr('aria-hidden');
+        // Optionally focus the first focusable element
+        $(this).find('button:first').focus();
+    });
+    
+    $('#lameScreenModal').on('hide.bs.modal', function () {
+        // Bootstrap will handle aria-hidden when hiding
+    });
+    
+    $('#endScreenModal').on('show.bs.modal', function () {
+        // Remove aria-hidden when modal is being shown
+        $(this).removeAttr('aria-hidden');
+    });
+    
+    $('#endScreenModal').on('shown.bs.modal', function () {
+        // Ensure aria-hidden is not set when modal is fully shown
+        $(this).removeAttr('aria-hidden');
+        // Optionally focus the first focusable element
+        $(this).find('button:first').focus();
+    });
+    
+    $('#endScreenModal').on('hide.bs.modal', function () {
+        // Bootstrap will handle aria-hidden when hiding
+    });
 });
 
 /**

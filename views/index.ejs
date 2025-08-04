@@ -1,14 +1,32 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="/css/style.css" >
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <link rel="icon" type="image/x-icon" href="/pictures/favicon.ico">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <title>All out?</title>
+    <title>Lights Out - Logikai Játék</title>
 </head>
 <body class="off" id="lamp">
+
+<!-- Loading Spinner -->
+<div id="loading-screen">
+    <div class="loading-container">
+        <div class="loading-text">
+            <span data-lang-hu="Betöltés..." data-lang-en="Loading...">Betöltés...</span>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span class="progress-text" id="progress-text">0%</span>
+        </div>
+    </div>
+</div>
+
 <audio id="backgsound" autoplay loop muted>
     <source src="/music/tuna.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
@@ -21,78 +39,192 @@
     <source src="/music/TitkosMari.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
+
+<!-- Light switch -->
 <div id="pull-chain" class="">
-    <div class="chain" style="height: 50px;"></div>
+    <div class="chain" style="height: 30px;"></div>
     <div class="handle"></div>
 </div>
 
-<span class="text-primary" id="time">Eltelt idő: 0</span><br><span class="text-primary" id="steps">Lépések: 0</span>
-<br>
-<label class="text-primary">Difficulty levels:
-    <select id="palya_valaszto" onchange="genMapOnSelect()" class="form-select">
-    </select>
-</label>
+<!-- Language switcher -->
+<div class="language-switcher">
+    <button class="btn" id="languageToggle">
+        <i class="fas fa-globe"></i> <span id="currentLang">HU</span>
+    </button>
+</div>
+
+<!-- Fake cursor for solver -->
 <svg xmlns="http://www.w3.org/2000/svg" width="30px" height="30px" viewBox="0 0 24 24" fill="white" id="fake-cursor" >
     <path d="M17.2607 12.4008C19.3774 11.2626 20.4357 10.6935 20.7035 10.0084C20.9359 9.41393 20.8705 8.74423 20.5276 8.20587C20.1324 7.58551 18.984 7.23176 16.6872 6.52425L8.00612 3.85014C6.06819 3.25318 5.09923 2.95471 4.45846 3.19669C3.90068 3.40733 3.46597 3.85584 3.27285 4.41993C3.051 5.06794 3.3796 6.02711 4.03681 7.94545L6.94793 16.4429C7.75632 18.8025 8.16052 19.9824 8.80519 20.3574C9.36428 20.6826 10.0461 20.7174 10.6354 20.4507C11.3149 20.1432 11.837 19.0106 12.8813 16.7454L13.6528 15.0719C13.819 14.7113 13.9021 14.531 14.0159 14.3736C14.1168 14.2338 14.2354 14.1078 14.3686 13.9984C14.5188 13.8752 14.6936 13.7812 15.0433 13.5932L17.2607 12.4008Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
-<br>
-<button class="btn btn-outline-primary" id="genMap">GENERATE MAP</button>
-<button class="btn btn-outline-primary" id="reset">RESTART</button>
-<button class="btn btn-outline-primary" id="solve">SOLVE</button>
-<button class="btn btn-outline-primary" id="mute">Mute background music</button>
-<button class="btn btn-outline-primary" id="info" data-bs-toggle="modal" data-bs-target="#infoModal">Game info</button>
+
+<!-- Main game container -->
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        
+        <!-- Header with title and stats -->
+        <div class="col-12 col-sm-6 col-lg-10 col-xl-8 mb-4 text-center">
+            <h1 class="display-4 mb-3 game-title" data-lang-hu="Lights Out" data-lang-en="Lights Out">Lights Out</h1>
+            <div class="game-stats d-flex justify-content-center gap-4 mb-3">
+                <div class="stat-card">
+                    <span class="stat-label" data-lang-hu="Idő:" data-lang-en="Time:">Idő:</span>
+                    <span class="stat-value" id="time">0:00</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label" data-lang-hu="Lépések:" data-lang-en="Steps:">Lépések:</span>
+                    <span class="stat-value" id="steps">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Game area -->
+        <!-- Game controls -->
+        <div class="row game-controls text-center mb-4">
+            <!-- Difficulty selection -->
+            <div class="control-group mb-3">
+                <label class="form-label difficulty-label" data-lang-hu="Nehézség:" data-lang-en="Difficulty:">Nehézség:</label>
+                <select id="palya_valaszto" onchange="genMapOnSelect()" class="form-select difficulty-select">
+                </select>
+            </div>
+            
+            <!-- Main action buttons -->
+            <div class="control-group">
+                <div class="btn-group main-buttons" role="group">
+                    <button class="btn btn-success btn-lg" id="genMap">
+                        <i class="fas fa-play"></i> <span data-lang-hu="Új játék" data-lang-en="New Game">Új játék</span>
+                    </button>
+                    <button class="btn btn-warning btn-lg" id="reset">
+                        <i class="fas fa-redo"></i> <span data-lang-hu="Újrakezd" data-lang-en="Restart">Újrakezd</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Helper buttons -->
+            <div class="control-group">
+                <div class="btn-group helper-buttons" role="group">
+                    <button class="btn btn-outline-info" id="solve">
+                        <i class="fas fa-robot"></i> <span data-lang-hu="Megoldás" data-lang-en="Solve">Megoldás</span>
+                    </button>
+                    <button class="btn btn-outline-primary" id="info" data-bs-toggle="modal" data-bs-target="#infoModal">
+                        <i class="fas fa-info-circle"></i> <span data-lang-hu="Segítség" data-lang-en="Help">Segítség</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+                
+        <!-- Canvas and Scoreboard row -->
+        <div class="row justify-content-center">
+
+            <!-- Left side - Audio controls -->
+            <div class="col-12 col-lg-3">
+                <div class="audio-controls-sidebar">
+                    <h6><i class="fas fa-music"></i> <span data-lang-hu="Audio" data-lang-en="Audio">Audio</span></h6>
+                    
+                    <!-- Background music controls -->
+                    <div class="audio-control-item">
+                        <div class="d-flex align-items-center mb-1">
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="bgMusicToggle">
+                                <i class="fas fa-play" id="bgMusicIcon"></i>
+                            </button>
+                            <span class="small" data-lang-hu="Háttérzene" data-lang-en="Background">Háttérzene</span>
+                        </div>
+                        <div class="volume-control-small">
+                            <input type="range" class="volume-slider-small" id="bgVolumeSlider" min="0" max="5" step="0.1" value="1">
+                            <span class="volume-value small" id="bgVolumeValue">1%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sound effects controls -->
+                    <div class="audio-control-item">
+                        <div class="d-flex align-items-center mb-1">
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="sfxToggle">
+                                <i class="fas fa-volume-up" id="sfxIcon"></i>
+                            </button>
+                            <span class="small" data-lang-hu="Hangeffektek" data-lang-en="Sound FX">Hangeffektek</span>
+                        </div>
+                        <div class="volume-control-small">
+                            <input type="range" class="volume-slider-small" id="sfxVolumeSlider" min="0" max="10" step="0.2" value="2">
+                            <span class="volume-value small" id="sfxVolumeValue">2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game canvas -->
+            <div class="game-canvas-container text-center col-12 col-lg-6">
+                <canvas id="vaszon"></canvas>
+            </div>
+            
+            <!-- Scoreboard next to canvas -->
+            <div class="col-12 col-lg-3">
+                <div id="scoreboard" class="table-responsive">
+                    <h5 class="scoreboard-title" data-lang-hu="Ranglista" data-lang-en="Leaderboard">Ranglista</h5>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th data-lang-hu="Név" data-lang-en="Name">Név</th>
+                                <th data-lang-hu="Pontszám" data-lang-en="Score">Pontszám</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreStuff">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>    
 
 <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
     <div class="modal-dialog ">
         <div class="modal-content bg-secondary text-white">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="infoModalLabel">Basic information</h1>
+                <h1 class="modal-title fs-5" id="infoModalLabel" data-lang-hu="Játék információ" data-lang-en="Game Information">Játék információ</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body justify-content-around">
-                <p>
-                    LightsOut is a puzzle where you are given a grid of circles, or lights, with some <span class="text-black">dark</span> and others <span class="text-decoration-underline">light</span>. You must turn them all off by clicking on the circles. Each click toggles that circle and each of its immediate neighbors (left, right, up and down).
-                </p>
-                <p>If you want to start the game then select difficulty and hit  <span class="text-info">Generate Map</span></p>
-                <p>For playing lower difficulties than nightmare you get <span class="text-info">reduced scores</span></p>
-                <p>If you can not solve the puzzle but want to watch someone do it then hit <span class="text-info">Solve</span> but be ready for the consequences</p>
-                <p>After you used <span class="text-info">Solve</span> you will have to <span class="text-info"> re- Generate the map</span> because now you know how to solve it. It works like this at the first 3 difficulty levels but those are always the same</p>
-                <p>If you want to restart the game then hit <span class="text-info">Restart</span></p>
+                <div class="modal-content-hu" data-lang="hu">
+                    <p>
+                        A Lights Out egy logikai rejtvény, ahol egy rácsban elhelyezett körök, vagy lámpák vannak, néhány <span class="text-dark">sötét</span> és mások <span class="text-decoration-underline">világosak</span>. Az összes lámpát ki kell kapcsolnod a körökre kattintva. Minden kattintás átváltja az adott kört és közvetlen szomszédait (bal, jobb, fel, le).
+                    </p>
+                    <p>Ha el szeretnéd kezdeni a játékot, válassz nehézséget és nyomd meg a <span class="text-info">Új játék</span> gombot</p>
+                    <p>Az alacsonyabb nehézségi fokozatoknál <span class="text-info">csökkentett pontszámot</span> kapsz</p>
+                    <p>Ha nem tudod megoldani a rejtvényt, de szeretnéd látni, hogyan kell, nyomd meg a <span class="text-info">Megoldás</span> gombot, de készülj fel a következményekre</p>
+                    <p>Miután használtad a <span class="text-info">Megoldás</span> funkciót, <span class="text-info">újra kell generálnod a pályát</span>, mert most már tudod, hogyan kell megoldani. Ez az első 3 nehézségi szinten így működik, de azok mindig ugyanazok</p>
+                    <p>Ha újra szeretnéd kezdeni a játékot, nyomd meg az <span class="text-info">Újrakezd</span> gombot</p>
+                </div>
+                <div class="modal-content-en" data-lang="en" style="display: none;">
+                    <p>
+                        Lights Out is a logic puzzle where you are given a grid of circles, or lights, with some <span class="text-dark">dark</span> and others <span class="text-decoration-underline">light</span>. You must turn them all off by clicking on the circles. Each click toggles that circle and each of its immediate neighbors (left, right, up and down).
+                    </p>
+                    <p>If you want to start the game then select difficulty and hit <span class="text-info">New Game</span></p>
+                    <p>For playing lower difficulties you get <span class="text-info">reduced scores</span></p>
+                    <p>If you can not solve the puzzle but want to watch someone do it then hit <span class="text-info">Solve</span> but be ready for the consequences</p>
+                    <p>After you used <span class="text-info">Solve</span> you will have to <span class="text-info">re-generate the map</span> because now you know how to solve it. It works like this at the first 3 difficulty levels but those are always the same</p>
+                    <p>If you want to restart the game then hit <span class="text-info">Restart</span></p>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-lang-hu="Bezár" data-lang-en="Close">Bezár</button>
             </div>
         </div>
     </div>
 </div>
 
-<br>
-<canvas id="vaszon" width="0" height="0"></canvas>
-<div id="scoreboard" class="table-responsive p-1">
-    <table>
-        <thead>
-            <tr>
-                <th class="makeItBreakIt">Name</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody id="scoreStuff">
-        </tbody>
-    </table>
-</div>
 <div class="modal fade" id="endScreenModal" tabindex="-1" aria-labelledby="endScreenModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content text-white" id="endScreen">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" style="color: lawngreen" id="endScreenModalLabel">You won!</h1>
+                <h1 class="modal-title fs-5" style="color: lawngreen" id="endScreenModalLabel" data-lang-hu="Győztél!" data-lang-en="You Won!">Győztél!</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <label for="name">Set your name for the scoreboard!!</label><input type="text" id="name" name="name" minlength="3">
+                <label for="name" class="form-label" data-lang-hu="Add meg a neved a ranglistához:" data-lang-en="Enter your name for the leaderboard:">Add meg a neved a ranglistához:</label>
+                <input type="text" id="name" name="name" class="form-control" minlength="3" data-lang-hu-placeholder="Név..." data-lang-en-placeholder="Name..." placeholder="Név...">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" id="scoreToName" data-bs-dismiss="modal">Set score!!!</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-success" id="scoreToName" data-bs-dismiss="modal" data-lang-hu="Pontszám mentése" data-lang-en="Save Score">Pontszám mentése</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-lang-hu="Bezár" data-lang-en="Close">Bezár</button>
             </div>
         </div>
     </div>
@@ -101,14 +233,19 @@
     <div class="modal-dialog">
         <div class="modal-content text-white" id="lameScreen">
             <div class="modal-header">
-                <h1 class="" style="color: orangered" id="lameScreenModalLabel">Imagine using solver</h1>
+                <h1 class="" style="color: white" id="lameScreenModalLabel" data-lang-hu="Elképzelhető, hogy segítséget használtál" data-lang-en="Imagine using solver">Elképzelhető, hogy segítséget használtál</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h2 style="color: orangered">You are bad at this game. Solve it without help...</h2>
+                <div class="modal-content-hu" data-lang="hu">
+                    <h2 style="color: white">Nem vagy jó ebben a játékban. Oldd meg segítség nélkül...</h2>
+                </div>
+                <div class="modal-content-en" data-lang="en" style="display: none;">
+                    <h2 style="color: white">You are bad at this game. Solve it without help...</h2>
+                </div>
             </div>
             <div class="modal-footer">
-                <button id="noobsAgree" class="btn btn-success" data-bs-dismiss="modal">I agree</button>
+                <button id="noobsAgree" class="btn btn-success" data-bs-dismiss="modal" data-lang-hu="Egyetértek" data-lang-en="I agree">Egyetértek</button>
             </div>
         </div>
     </div>

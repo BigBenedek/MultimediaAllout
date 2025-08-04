@@ -29,4 +29,4 @@ if (require.main === module) {
 }
 
 // For Vercel serverless deployment
-module.exports = serverless(app);
+module.exports = app;

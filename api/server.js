@@ -1,7 +1,6 @@
 //npmmel letöltve
 const express = require("express")
 const path = require("path");
-const serverless = require("serverless-http");
 
 const app = express()
 
@@ -19,14 +18,6 @@ app.set('view engine', 'ejs')
 app.get("/*", (req, res)=>{
     res.render("index.ejs")
 })
-
-// For local development
-if (require.main === module) {
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-    });
-}
 
 // For Vercel serverless deployment
 module.exports = app;

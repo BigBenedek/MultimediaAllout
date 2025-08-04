@@ -93,7 +93,7 @@
                     <button class="btn btn-success btn-lg" id="genMap">
                         <i class="fas fa-play"></i> <span data-lang-hu="Új játék" data-lang-en="New Game">Új játék</span>
                     </button>
-                    <button class="btn btn-warning btn-lg" id="reset">
+                    <button class="btn btn-accent btn-lg" id="reset">
                         <i class="fas fa-redo"></i> <span data-lang-hu="Újrakezd" data-lang-en="Restart">Újrakezd</span>
                     </button>
                 </div>
@@ -212,40 +212,134 @@
 </div>
 
 <div class="modal fade" id="endScreenModal" tabindex="-1" aria-labelledby="endScreenModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content text-white" id="endScreen">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" style="color: lawngreen" id="endScreenModalLabel" data-lang-hu="Győztél!" data-lang-en="You Won!">Győztél!</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white winner-modal" id="endScreen">
+            <div class="modal-header border-0 text-center">
+                <div class="w-100">
+                    <div class="winner-icon mb-3">
+                        <i class="fas fa-trophy fa-3x"></i>
+                    </div>
+                    <h1 class="winner-title" id="endScreenModalLabel" data-lang-hu="🎉 FANTASZTIKUS! 🎉" data-lang-en="🎉 FANTASTIC! 🎉">🎉 FANTASZTIKUS! 🎉</h1>
+                    <div class="winner-subtitle mt-2" data-lang-hu="Sikeresen megoldottad!" data-lang-en="You solved it successfully!">Sikeresen megoldottad!</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <label for="name" class="form-label" data-lang-hu="Add meg a neved a ranglistához:" data-lang-en="Enter your name for the leaderboard:">Add meg a neved a ranglistához:</label>
-                <input type="text" id="name" name="name" class="form-control" minlength="3" data-lang-hu-placeholder="Név..." data-lang-en-placeholder="Name..." placeholder="Név...">
+            <div class="modal-body text-center">
+                <div class="modal-content-hu" data-lang="hu">
+                    <div class="victory-message mb-4">
+                        <h2 class="winner-praise mb-3">Briliáns munka! 🧠✨</h2>
+                        <p class="winner-text mb-2">Logikus gondolkodással és kitartással győztél!</p>
+                        <p class="winner-text mb-3">Bebizonyítottad, hogy az emberi intelligencia még mindig felülmúlja a gépeket! 🚀</p>
+                    </div>
+                    <div class="score-section mb-4">
+                        <div class="score-badge mb-3">
+                            <i class="fas fa-star"></i>
+                            <span>EREDMÉNYED</span>
+                        </div>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-icon">⏱️</span>
+                                <span class="stat-label">Idő:</span>
+                                <span class="stat-highlight" id="finalTime">--</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">👆</span>
+                                <span class="stat-label">Lépések:</span>
+                                <span class="stat-highlight" id="finalSteps">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-section">
+                        <div class="input-group-wrapper">
+                            <label for="name" class="form-label winner-input-label">Írd be a neved a dicsőséghez:</label>
+                            <input type="text" id="name" name="name" class="form-control winner-input" minlength="3" placeholder="Az új bajnok neve...">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-content-en" data-lang="en" style="display: none;">
+                    <div class="victory-message mb-4">
+                        <h2 class="winner-praise mb-3">Brilliant work! 🧠✨</h2>
+                        <p class="winner-text mb-2">You won with logical thinking and persistence!</p>
+                        <p class="winner-text mb-3">You proved that human intelligence still surpasses machines! 🚀</p>
+                    </div>
+                    <div class="score-section mb-4">
+                        <div class="score-badge mb-3">
+                            <i class="fas fa-star"></i>
+                            <span>YOUR RESULT</span>
+                        </div>
+                        <div class="stats-display">
+                            <div class="stat-item">
+                                <span class="stat-icon">⏱️</span>
+                                <span class="stat-label">Time:</span>
+                                <span class="stat-highlight" id="finalTimeEn">--</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">👆</span>
+                                <span class="stat-label">Steps:</span>
+                                <span class="stat-highlight" id="finalStepsEn">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-section">
+                        <div class="input-group-wrapper">
+                            <label for="name" class="form-label winner-input-label">Enter your name for glory:</label>
+                            <input type="text" id="name" name="name" class="form-control winner-input" minlength="3" placeholder="The new champion's name...">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-success" id="scoreToName" data-bs-dismiss="modal" data-lang-hu="Pontszám mentése" data-lang-en="Save Score">Pontszám mentése</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-lang-hu="Bezár" data-lang-en="Close">Bezár</button>
+            <div class="modal-footer border-0 justify-content-center">
+                <button class="btn btn-winner-save me-3" id="scoreToName" data-bs-dismiss="modal" data-lang-hu="🏆 Örökítsd meg a dicsőséged!" data-lang-en="🏆 Immortalize your glory!">🏆 Örökítsd meg a dicsőséged!</button>
             </div>
         </div>
     </div>
 </div>
 <div class="modal fade" id="lameScreenModal" tabindex="-1" aria-labelledby="lameScreenModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content text-white" id="lameScreen">
-            <div class="modal-header">
-                <h1 class="" style="color: white" id="lameScreenModalLabel" data-lang-hu="Elképzelhető, hogy segítséget használtál" data-lang-en="Imagine using solver">Elképzelhető, hogy segítséget használtál</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white solver-modal" id="lameScreen">
+            <div class="modal-header border-0 text-center">
+                <div class="w-100">
+                    <div class="solver-icon mb-3">
+                        <i class="fas fa-robot fa-3x"></i>
+                    </div>
+                    <h1 class="solver-title" id="lameScreenModalLabel" data-lang-hu="🤖 A GÉPEK NYERTEK! 🤖" data-lang-en="🤖 THE MACHINES WON! 🤖">🤖 A GÉPEK NYERTEK! 🤖</h1>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
                 <div class="modal-content-hu" data-lang="hu">
-                    <h2 style="color: white">Nem vagy jó ebben a játékban. Oldd meg segítség nélkül...</h2>
+                    <div class="shame-message mb-4">
+                        <h2 class="solver-subtitle mb-3">Szégyen! 😅</h2>
+                        <p class="solver-text mb-2">Egy egyszerű logikai rejtvényben is segítségre volt szükséged?</p>
+                        <p class="solver-text mb-2">A mesterséges intelligencia <span class="highlight">0.3 másodperc alatt</span> megoldotta, amit te nem tudtál! 🔥</p>
+                        <p class="solver-text mb-3">Talán próbálj meg egy egyszerűbb játékot... mint az X-O? 😏</p>
+                    </div>
+                    <div class="challenge-section">
+                        <div class="challenge-badge mb-3">
+                            <i class="fas fa-trophy"></i>
+                            <span>KIHÍVÁS</span>
+                        </div>
+                        <p class="solver-text">Most generálj egy új pályát és próbáld meg <strong>EGYEDÜL</strong> megoldani!</p>
+                    </div>
                 </div>
                 <div class="modal-content-en" data-lang="en" style="display: none;">
-                    <h2 style="color: white">You are bad at this game. Solve it without help...</h2>
+                    <div class="shame-message mb-4">
+                        <h2 class="solver-subtitle mb-3">Shame! 😅</h2>
+                        <p class="solver-text mb-2">You needed help with a simple logic puzzle?</p>
+                        <p class="solver-text mb-2">The AI solved it in <span class="highlight">0.3 seconds</span> while you couldn't! 🔥</p>
+                        <p class="solver-text mb-3">Maybe try an easier game... like Tic-Tac-Toe? 😏</p>
+                    </div>
+                    <div class="challenge-section">
+                        <div class="challenge-badge mb-3">
+                            <i class="fas fa-trophy"></i>
+                            <span>CHALLENGE</span>
+                        </div>
+                        <p class="solver-text">Now generate a new board and try to solve it <strong>ALONE</strong>!</p>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button id="noobsAgree" class="btn btn-success" data-bs-dismiss="modal" data-lang-hu="Egyetértek" data-lang-en="I agree">Egyetértek</button>
+            <div class="modal-footer border-0 justify-content-center">
+                <button id="noobsAgree" class="btn btn-solver-accept" data-bs-dismiss="modal" data-lang-hu="😔 Elfogadom a szégyenemet" data-lang-en="😔 I accept my shame">😔 Elfogadom a szégyenemet</button>
             </div>
         </div>
     </div>

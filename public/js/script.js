@@ -786,6 +786,13 @@ function formatSeconds(totalSeconds) {
  */
 function end() {
     if (!solverOn) {
+        // Populate winner modal with final stats
+        const finalTimeFormatted = formatSeconds(lastTime);
+        document.getElementById('finalTime').textContent = finalTimeFormatted;
+        document.getElementById('finalSteps').textContent = lastSteps.toString();
+        document.getElementById('finalTimeEn').textContent = finalTimeFormatted;
+        document.getElementById('finalStepsEn').textContent = lastSteps.toString();
+        
         $('#endScreenModal').modal('toggle');
     } else {
         $('#lameScreenModal').modal('toggle');

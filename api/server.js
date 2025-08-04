@@ -16,8 +16,13 @@ app.use("/pictures",express.static(path.join(__dirname, '../public/pictures')))
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'ejs')
 
-app.get("/*", (req, res)=>{
-    ////werewrwerw
+// Main route
+app.get("/", (req, res)=>{
+    res.render("index.ejs")
+})
+
+// Catch-all route for other paths
+app.use((req, res) => {
     res.render("index.ejs")
 })
 

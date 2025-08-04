@@ -21,4 +21,13 @@ app.get("/*", (req, res)=>{
     res.render("index.ejs")
 })
 
-module.exports = app;
+// For local development
+if (require.main === module) {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
+}
+
+// For Vercel serverless deployment
+module.exports = serverless(app);
